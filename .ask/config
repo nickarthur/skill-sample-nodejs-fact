@@ -1,14 +1,14 @@
 {
   "deploy_settings": {
     "default": {
-      "skill_id": "",
+      "skill_id": "amzn1.ask.skill.2c43f983-ce66-4a37-b2b9-8fb8c49f778c",
       "was_cloned": false,
       "merge": {
-        "skillManifest": {
+        "manifest": {
           "apis": {
             "custom": {
               "endpoint": {
-                "uri": "what_name_you_want_to_name_the_lambda"
+                "uri": "skill-sample-nodejs-fact-dev-handler"
               }
             }
           }
