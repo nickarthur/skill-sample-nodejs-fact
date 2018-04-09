@@ -26,7 +26,7 @@ const Alexa = require('alexa-sdk');
 const APP_ID = undefined;
 
 const SKILL_NAME = 'Space Facts';
-const GET_FACT_MESSAGE = "Here's your fact: ";
+const GET_FACT_MESSAGE = "Shizzle My Nizzle... Here's your fact: ";
 const HELP_MESSAGE = `You can say tell me a space fact, or,
 you can say exit... What can I help you with?`;
 const HELP_REPROMPT = 'What can I help you with?';
@@ -56,6 +56,14 @@ const data = [
 //=========================================================================================================================================
 
 exports.handler = function(event, context, callback) {
+    context.callbackWaitsForEmptyEventLoop = false;
+
+    /** Immediate response for WarmUP plugin */
+    if (event.source === 'serverless-plugin-warmup') {
+      console.log('WarmUP - Lambda is warm!')
+      return callback(null, 'Lambda is warm!')
+    }
+
     var alexa = Alexa.handler(event, context);
     alexa.appId = APP_ID;
     alexa.registerHandlers(handlers);
@@ -67,6 +75,7 @@ const handlers = {
         this.emit('GetNewFactIntent');
     },
     'GetNewFactIntent': function () {
+        console.log("@@@@@@@ SHA ZIZZLE MA NA ZIZZLE +++ ++++ +++++ ++++++ ");
         const factArr = data;
         const factIndex = Math.floor(Math.random() * factArr.length);
         const randomFact = factArr[factIndex];

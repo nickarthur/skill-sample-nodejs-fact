@@ -1,0 +1,244 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "HandlerLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/skill-sample-nodejs-fact-dev-handler"
+      }
+    },
+    "WarmUpPluginLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/skill-sample-nodejs-fact-dev-warmup-plugin"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "dev",
+                  "skill-sample-nodejs-fact",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/skill-sample-nodejs-fact-dev-handler:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/skill-sample-nodejs-fact-dev-warmup-plugin:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/skill-sample-nodejs-fact-dev-handler:*:*"
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/skill-sample-nodejs-fact-dev-warmup-plugin:*:*"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "skill-sample-nodejs-fact",
+              "dev",
+              "us-east-1",
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "HandlerLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/skill-sample-nodejs-fact/dev/1523243666655-2018-04-09T03:14:26.655Z/skill-sample-nodejs-fact.zip"
+        },
+        "FunctionName": "skill-sample-nodejs-fact-dev-handler",
+        "Handler": "index.handler",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 6
+      },
+      "DependsOn": [
+        "HandlerLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "HandlerLambdaVersionONyhM4L3211FBjUC6IFmwsAGyeT9fImvPRbmTJww3KY": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "HandlerLambdaFunction"
+        },
+        "CodeSha256": "VO0CLRtcZ4Sdzd0zxxR5aW8bWIMxVBPDzX3BLxP30gk="
+      }
+    },
+    "WarmUpPluginLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/skill-sample-nodejs-fact/dev/1523243666655-2018-04-09T03:14:26.655Z/warmUpPlugin.zip"
+        },
+        "FunctionName": "skill-sample-nodejs-fact-dev-warmup-plugin",
+        "Handler": "_warmup/index.warmUp",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs6.10",
+        "Timeout": 10,
+        "Description": "Serverless WarmUP Plugin"
+      },
+      "DependsOn": [
+        "WarmUpPluginLogGroup",
+        "IamRoleLambdaExecution"
+      ]
+    },
+    "WarmUpPluginLambdaVersiontikUrhJ4VPIf1HueNyOstxjJ2gFZ36WZzyhJzyaKlAU": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "WarmUpPluginLambdaFunction"
+        },
+        "CodeSha256": "0deuhWIHzrAJoUczsfmh5ZyZ0I//psjRU8GkzOxiz6E=",
+        "Description": "Serverless WarmUP Plugin"
+      }
+    },
+    "WarmUpPluginEventsRuleSchedule1": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(5 minutes)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "WarmUpPluginLambdaFunction",
+                "Arn"
+              ]
+            },
+            "Id": "warmUpPluginSchedule"
+          }
+        ]
+      }
+    },
+    "WarmUpPluginLambdaPermissionEventsRuleSchedule1": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WarmUpPluginLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "WarmUpPluginEventsRuleSchedule1",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "HandlerLambdaPermissionAlexaSkill": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "HandlerLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "alexa-appkit.amazon.com"
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "HandlerLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "HandlerLambdaVersionONyhM4L3211FBjUC6IFmwsAGyeT9fImvPRbmTJww3KY"
+      }
+    },
+    "WarmUpPluginLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "WarmUpPluginLambdaVersiontikUrhJ4VPIf1HueNyOstxjJ2gFZ36WZzyhJzyaKlAU"
+      }
+    }
+  }
+}

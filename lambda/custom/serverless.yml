@@ -1,0 +1,16 @@
+service: skill-sample-nodejs-fact
+
+frameworkVersion: ">=1.4.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  handler:
+    warmup: true
+    handler: index.handler
+    events:
+      - alexaSkill
+plugins:
+  - serverless-plugin-warmup
